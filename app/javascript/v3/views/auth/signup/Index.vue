@@ -20,12 +20,12 @@ export default {
   },
   computed: {
     ...mapGetters({ globalConfig: 'globalConfig/get' }),
-    isAChatwootInstance() {
-      return this.globalConfig.installationName === 'Chatwoot';
+    isAChautariInstance() {
+      return this.globalConfig.installationName === 'Chautari';
     },
   },
   beforeMount() {
-    this.isLoading = this.isAChatwootInstance;
+    this.isLoading = this.isAChautariInstance;
   },
   methods: {
     resizeContainers() {
@@ -70,7 +70,7 @@ export default {
         </div>
       </div>
       <Testimonials
-        v-if="isAChatwootInstance"
+        v-if="isAChautariInstance"
         class="flex-1"
         @resize-containers="resizeContainers"
       />

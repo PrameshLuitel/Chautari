@@ -63,7 +63,7 @@ export default {
   }),
   computed: {
     ...mapGetters({
-      isAChatwootInstance: 'globalConfig/isAChatwootInstance',
+      isAChautariInstance: 'globalConfig/isAChautariInstance',
     }),
     isAICTAModalDismissed() {
       return this.uiSettings.is_open_ai_cta_modal_dismissed;
@@ -73,8 +73,7 @@ export default {
       return (
         this.isAdmin &&
         !this.isAIIntegrationEnabled &&
-        !this.isAICTAModalDismissed &&
-        this.isAChatwootInstance
+        !this.isAICTAModalDismissed
       );
     },
     // Display a AI CTA button for agents and other admins who have not yet opened the AI assistance modal.
@@ -125,18 +124,19 @@ export default {
 
 <template>
   <div>
-    <div v-if="isAIIntegrationEnabled" class="relative">
+    <div class="relative">
       <AIAssistanceCTAButton
-        v-if="shouldShowAIAssistCTAButton"
+        v-if="shouldShowAIAssistCTAButtonForAdmin"
         @open="openAIAssist"
       />
       <NextButton
         v-else
         v-tooltip.top-end="$t('INTEGRATION_SETTINGS.OPEN_AI.AI_ASSIST')"
         icon="i-ph-magic-wand"
-        slate
+        iris
         faded
         sm
+        class="ai-assist-button"
         @click="openAIAssist"
       />
       <woot-modal
@@ -150,11 +150,15 @@ export default {
         />
       </woot-modal>
     </div>
-    <div v-else-if="shouldShowAIAssistCTAButtonForAdmin" class="relative">
-      <AIAssistanceCTAButton @click="openAICta" />
-      <woot-modal v-model:show="showAICtaModal" :on-close="hideAICtaModal">
-        <AICTAModal @close="hideAICtaModal" />
-      </woot-modal>
-    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.ai-assist-button {
+  @apply transition-all duration-300;
+  
+  &:hover {
+    @apply shadow-[0_0_15px_rgba(99,102,241,0.3)] dark:shadow-[0_0_20px_rgba(129,140,248,0.2)] -translate-y-0.5;
+  }
+}
+</style>

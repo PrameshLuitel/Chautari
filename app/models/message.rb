@@ -315,6 +315,14 @@ class Message < ApplicationRecord
     send_reply
     execute_message_template_hooks
     update_contact_activity
+    trigger_auto_label_job
+  end
+
+  def trigger_auto_label_job
+    return unless incoming? && !private?
+    return unless account.sahayak_label_suggestion_enabled?
+
+    Ai::AutoLabelJob.perform_later(sender.id, account.id) if sender.is_a?(Contact)
   end
 
   def update_contact_activity

@@ -10,13 +10,14 @@ import { getAllowedFileTypesByChannel } from '@chatwoot/utils';
 import { ALLOWED_FILE_TYPES } from 'shared/constants/messages';
 import VideoCallButton from '../VideoCallButton.vue';
 import AIAssistanceButton from '../AIAssistanceButton.vue';
+import ProductPickerButton from '../ProductPickerButton.vue';
 import { INBOX_TYPES } from 'dashboard/helper/inbox';
 import { mapGetters } from 'vuex';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
 export default {
   name: 'ReplyBottomPanel',
-  components: { NextButton, FileUpload, VideoCallButton, AIAssistanceButton },
+  components: { NextButton, FileUpload, VideoCallButton, AIAssistanceButton, ProductPickerButton },
   mixins: [inboxMixin],
   props: {
     isNote: {
@@ -272,6 +273,17 @@ export default {
     toggleInsertArticle() {
       this.$emit('toggleInsertArticle');
     },
+    insertProduct(item) {
+      let template = '';
+      if (item.isInstantBundle) {
+        const itemList = item.items.map(i => `• ${i.name} (${i.currency} ${i.cost})`).join('\n');
+        template = `🎁 *Instant Bundle Offer* 🎁\n━━━━━━━━━━━━━━━━━━\n\n📋 *Included Items:*\n${itemList}\n\n💰 *Total Investment:* ${item.currency} ${item.cost}\n\n🌟 *Exclusive bundle created just for you!*\n\n━━━━━━━━━━━━━━━━━━\n*Reply with "YES" to grab this offer!*`;
+      } else {
+        template = `✨ *Product Recommendation* ✨\n━━━━━━━━━━━━━━━━━━\n\n📦 *Item:* ${item.name}\n💰 *Investment:* ${item.currency} ${item.cost}\n\n📝 *Details:*\n${item.description || 'Premium service/product details'}\n\n━━━━━━━━━━━━━━━━━━\n*Let us know if you would like to proceed with this item!*`;
+      }
+      this.$emit('replaceText', template);
+      this.$emit('select-product', item);
+    },
   },
 };
 </script>
@@ -369,6 +381,10 @@ export default {
       <VideoCallButton
         v-if="(isAWebWidgetInbox || isAPIInbox) && !isOnPrivateNote"
         :conversation-id="conversationId"
+      />
+      <ProductPickerButton
+        v-if="!isOnPrivateNote"
+        @select="insertProduct"
       />
       <AIAssistanceButton
         v-if="!isFetchingAppIntegrations"

@@ -1,10 +1,13 @@
-aproviders:
+providers:
   openai:
     display_name: 'OpenAI'
   anthropic:
     display_name: 'Anthropic'
   gemini:
     display_name: 'Gemini'
+  groq:
+    display_name: 'Groq'
+
 
 models:
   gpt-4.1:
@@ -63,6 +66,26 @@ models:
     provider: openai
     display_name: 'Text Embedding 3 Small'
     credit_multiplier: 1
+  llama-3.1-70b-versatile:
+    provider: groq
+    display_name: 'Llama 3.1 70B'
+    credit_multiplier: 1
+  llama-3.1-8b-instant:
+    provider: groq
+    display_name: 'Llama 3.1 8B'
+    credit_multiplier: 1
+  llama-3.2-90b-text-preview:
+    provider: groq
+    display_name: 'Llama 3.2 90B'
+    credit_multiplier: 1
+  mixtral-8x7b-32768:
+    provider: groq
+    display_name: 'Mixtral 8x7b'
+    credit_multiplier: 1
+  gemma2-9b-it:
+    provider: groq
+    display_name: 'Gemma2 9B'
+    credit_multiplier: 1
 
 features:
   editor:
@@ -77,6 +100,7 @@ features:
         claude-haiku-4.5,
         gemini-3-flash,
         gemini-3-pro,
+        llama-3.1-70b-versatile,
       ]
     default: gpt-4.1-mini
   assistant:
@@ -90,6 +114,7 @@ features:
         claude-sonnet-4.5,
         gemini-3-flash,
         gemini-3-pro,
+        llama-3.1-70b-versatile,
       ]
     default: gpt-5.1
   copilot:
@@ -103,11 +128,12 @@ features:
         claude-sonnet-4.5,
         gemini-3-flash,
         gemini-3-pro,
+        llama-3.1-70b-versatile,
       ]
     default: gpt-5.1
   label_suggestion:
     models:
-      [gpt-4.1-nano, gpt-4.1-mini, gpt-5-mini, gemini-3-flash, claude-haiku-4.5]
+      [gpt-4.1-nano, gpt-4.1-mini, gpt-5-mini, gemini-3-flash, claude-haiku-4.5, llama-3.1-70b-versatile]
     default: gpt-4.1-nano
   audio_transcription:
     models: [whisper-1]

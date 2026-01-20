@@ -7,6 +7,14 @@ module Llm::Config
       @initialized ||= false
     end
 
+    def groq_endpoint
+      InstallationConfig.find_by(name: 'GROQ_API_ENDPOINT')&.value || 'https://api.groq.com/openai/v1'
+    end
+
+    def openai_endpoint
+      InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_ENDPOINT')&.value
+    end
+
     def initialize!
       return if @initialized
 
@@ -21,7 +29,7 @@ module Llm::Config
     def with_api_key(api_key, api_base: nil)
       context = RubyLLM.context do |config|
         config.openai_api_key = api_key
-        config.openai_api_base = api_base
+        config.openai_api_base = api_base || groq_endpoint
       end
 
       yield context
@@ -32,17 +40,17 @@ module Llm::Config
     def configure_ruby_llm
       RubyLLM.configure do |config|
         config.openai_api_key = system_api_key if system_api_key.present?
-        config.openai_api_base = openai_endpoint.chomp('/') if openai_endpoint.present?
+        config.openai_api_base = (groq_endpoint || openai_endpoint).chomp('/') if (groq_endpoint || openai_endpoint).present?
         config.logger = Rails.logger
       end
     end
 
     def system_api_key
-      InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value
+      InstallationConfig.find_by(name: 'GROQ_API_KEY')&.value || InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value
     end
 
-    def openai_endpoint
-      InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_ENDPOINT')&.value
+    def system_api_key
+      InstallationConfig.find_by(name: 'GROQ_API_KEY')&.value || InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_API_KEY')&.value
     end
   end
 end

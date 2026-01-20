@@ -54,11 +54,13 @@ Rails.application.routes.draw do
           resources :agents, only: [:index, :create, :update, :destroy] do
             post :bulk_create, on: :collection
           end
-          namespace :captain do
+          namespace :sahayak do
             resource :preferences, only: [:show, :update]
             resources :assistants do
               member do
                 post :playground
+                post :generate_suggestions
+                post :answer_product_query
               end
               collection do
                 get :tools
@@ -202,6 +204,8 @@ Rails.application.routes.draw do
           resources :reporting_events, only: [:index] if ChatwootApp.enterprise?
           resources :custom_attribute_definitions, only: [:index, :show, :create, :update, :destroy]
           resources :custom_filters, only: [:index, :show, :create, :update, :destroy]
+          resources :products, only: [:index, :create, :show, :update, :destroy]
+          resources :product_bundles, only: [:index, :create, :show, :update, :destroy]
           resources :inboxes, only: [:index, :show, :create, :update, :destroy] do
             get :assignable_agents, on: :member
             get :campaigns, on: :member
@@ -344,6 +348,8 @@ Rails.application.routes.draw do
             end
           end
 
+
+          resources :products, only: [:index, :create, :show, :update, :destroy]
           resources :upload, only: [:create]
         end
       end

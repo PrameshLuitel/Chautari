@@ -26,6 +26,8 @@ module Llm::Models
       {
         models: feature['models'].map do |model_name|
           model = models[model_name]
+          next nil unless model
+
           {
             id: model_name,
             display_name: model['display_name'],
@@ -33,7 +35,7 @@ module Llm::Models
             coming_soon: model['coming_soon'],
             credit_multiplier: model['credit_multiplier']
           }
-        end,
+        end.compact,
         default: feature['default']
       }
     end

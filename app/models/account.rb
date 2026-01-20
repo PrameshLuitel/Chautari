@@ -11,15 +11,23 @@
 #  limits                :jsonb
 #  locale                :integer          default("en")
 #  name                  :string           not null
+#  sahayak_features      :jsonb            not null
+#  sahayak_models        :jsonb            not null
 #  settings              :jsonb
 #  status                :integer          default("active")
 #  support_email         :string(100)
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
+#  ai_config_id          :bigint
 #
 # Indexes
 #
-#  index_accounts_on_status  (status)
+#  index_accounts_on_ai_config_id  (ai_config_id)
+#  index_accounts_on_status        (status)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (ai_config_id => ai_configs.id)
 #
 
 class Account < ApplicationRecord
@@ -28,7 +36,7 @@ class Account < ApplicationRecord
   include Reportable
   include Featurable
   include CacheKeys
-  include CaptainFeaturable
+  include SahayakFeaturable
 
   SETTINGS_PARAMS_SCHEMA = {
     'type': 'object',
@@ -43,7 +51,7 @@ class Account < ApplicationRecord
           'type': %w[array null],
           'items': { 'type': 'string' }
         },
-        'captain_models': {
+        'sahayak_models': {
           'type': %w[object null],
           'properties': {
             'editor': { 'type': %w[string null] },
@@ -55,7 +63,7 @@ class Account < ApplicationRecord
           },
           'additionalProperties': false
         },
-        'captain_features': {
+        'sahayak_features': {
           'type': %w[object null],
           'properties': {
             'editor': { 'type': %w[boolean null] },
@@ -86,7 +94,8 @@ class Account < ApplicationRecord
   store_accessor :settings, :auto_resolve_after, :auto_resolve_message, :auto_resolve_ignore_waiting
 
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label, :conversation_required_attributes
-  store_accessor :settings, :captain_models, :captain_features
+  # Sahayak columns are native JSONB now, so no store_accessor needed for settings
+  # store_accessor :settings, :captain_models, :captain_features # Removed Captain
 
   has_many :account_users, dependent: :destroy_async
   has_many :agent_bot_inboxes, dependent: :destroy_async
@@ -130,6 +139,9 @@ class Account < ApplicationRecord
   has_many :webhooks, dependent: :destroy_async
   has_many :whatsapp_channels, dependent: :destroy_async, class_name: '::Channel::Whatsapp'
   has_many :working_hours, dependent: :destroy_async
+  has_many :products, dependent: :destroy_async
+  has_many :product_bundles, dependent: :destroy_async
+  has_many :ai_configs, dependent: :destroy_async
 
   has_one_attached :contacts_export
 

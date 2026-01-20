@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_19_150001) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -73,6 +73,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
     t.integer "status", default: 0
     t.jsonb "internal_attributes", default: {}, null: false
     t.jsonb "settings", default: {}
+    t.bigint "ai_config_id"
+    t.jsonb "sahayak_models", default: {}, null: false
+    t.jsonb "sahayak_features", default: {}, null: false
+    t.index ["ai_config_id"], name: "index_accounts_on_ai_config_id"
     t.index ["status"], name: "index_accounts_on_status"
   end
 
@@ -142,6 +146,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_agent_capacity_policies_on_account_id"
+  end
+
+  create_table "ai_configs", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.integer "provider", default: 0, null: false
+    t.string "api_key"
+    t.string "api_endpoint"
+    t.string "ai_model_name"
+    t.jsonb "settings", default: {}, null: false
+    t.jsonb "features_enabled", default: [], null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "provider"], name: "index_ai_configs_on_account_id_and_provider", unique: true
+    t.index ["account_id"], name: "index_ai_configs_on_account_id"
   end
 
   create_table "applied_slas", force: :cascade do |t|
@@ -917,6 +936,23 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
     t.index ["title", "account_id"], name: "index_labels_on_title_and_account_id", unique: true
   end
 
+  create_table "lead_scores", force: :cascade do |t|
+    t.bigint "contact_id", null: false
+    t.bigint "account_id", null: false
+    t.integer "score", default: 0, null: false
+    t.integer "category", default: 0, null: false
+    t.jsonb "qualification_data", default: {}, null: false
+    t.datetime "last_analyzed_at"
+    t.boolean "auto_qualified", default: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_lead_scores_on_account_id"
+    t.index ["category"], name: "index_lead_scores_on_category"
+    t.index ["contact_id", "account_id"], name: "index_lead_scores_on_contact_id_and_account_id", unique: true
+    t.index ["contact_id"], name: "index_lead_scores_on_contact_id"
+    t.index ["score"], name: "index_lead_scores_on_score"
+  end
+
   create_table "leaves", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.bigint "user_id", null: false
@@ -1091,6 +1127,42 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
     t.index ["portal_id", "user_id"], name: "index_portals_members_on_portal_id_and_user_id", unique: true
     t.index ["portal_id"], name: "index_portals_members_on_portal_id"
     t.index ["user_id"], name: "index_portals_members_on_user_id"
+  end
+
+  create_table "product_bundle_items", force: :cascade do |t|
+    t.bigint "product_bundle_id", null: false
+    t.bigint "product_id", null: false
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_product_bundle_items_on_account_id"
+    t.index ["product_bundle_id", "product_id"], name: "index_product_bundle_items_on_product_bundle_id_and_product_id", unique: true
+    t.index ["product_bundle_id"], name: "index_product_bundle_items_on_product_bundle_id"
+    t.index ["product_id"], name: "index_product_bundle_items_on_product_id"
+  end
+
+  create_table "product_bundles", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.decimal "price", precision: 10, scale: 2
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_product_bundles_on_account_id"
+  end
+
+  create_table "products", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.decimal "cost", precision: 10, scale: 2, default: "0.0", null: false
+    t.string "currency", default: "USD", null: false
+    t.string "image_url"
+    t.bigint "account_id", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_products_on_account_id"
+    t.index ["metadata"], name: "index_products_on_metadata", using: :gin
   end
 
   create_table "related_categories", force: :cascade do |t|
@@ -1268,9 +1340,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_14_201315) do
     t.index ["inbox_id"], name: "index_working_hours_on_inbox_id"
   end
 
+  add_foreign_key "accounts", "ai_configs"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "ai_configs", "accounts"
   add_foreign_key "inboxes", "portals"
+  add_foreign_key "lead_scores", "accounts"
+  add_foreign_key "lead_scores", "contacts"
+  add_foreign_key "product_bundle_items", "accounts"
+  add_foreign_key "product_bundle_items", "product_bundles"
+  add_foreign_key "product_bundle_items", "products"
+  add_foreign_key "product_bundles", "accounts"
+  add_foreign_key "products", "accounts"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").
       after(:insert).
